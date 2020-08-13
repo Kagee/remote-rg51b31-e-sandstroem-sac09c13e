@@ -1,0 +1,29 @@
+System 1: rpi3b+ w/https://energenie4u.co.uk/res/pdfs/ENER314-IR_User_guide_V3.pdf
+System 2: rpi3b+ w/http://anavi.technology/files/anavi-infrared-phat.pdf
+
+/boot/config.txt: (yes, this is completly revered from default values)
+dtoverlay=gpio-ir,gpio_pin=18
+dtoverlay=gpio-ir-tx,gpio_pin=17
+
+Aug 13 22:34:37 rasp-3-1 kernel: [    5.946504] rc rc1: GPIO IR Bit Banging Transmitter as /devices/platform/gpio-ir-transmitter@11/rc/rc1
+Aug 13 22:34:37 rasp-3-1 kernel: [    5.946816] rc rc1: lirc_dev: driver gpio-ir-tx registered at minor = 0, no receiver, raw IR transmitter
+Aug 13 22:34:37 rasp-3-1 kernel: [    6.007385] rc rc0: gpio_ir_recv as /devices/platform/ir-receiver@12/rc/rc0
+Aug 13 22:34:37 rasp-3-1 kernel: [    6.007637] rc rc0: lirc_dev: driver gpio_ir_recv registered at minor = 1, raw IR receiver, no transmitter
+Aug 13 22:34:37 rasp-3-1 kernel: [    6.007902] input: gpio_ir_recv as /devices/platform/ir-receiver@12/rc/rc0/input0
+
+https://github.com/raspberrypi/linux/issues/2993
+Add these rules in /etc/udev/rules.d/71-lirc.rules to get stable /dev/lirc-rx and /dev/lirc-tx device names:
+
+ACTION=="add", SUBSYSTEM=="lirc", DRIVERS=="gpio_ir_recv", SYMLINK+="lirc-rx"
+ACTION=="add", SUBSYSTEM=="lirc", DRIVERS=="gpio-ir-tx", SYMLINK+="lirc-tx"
+ACTION=="add", SUBSYSTEM=="lirc", DRIVERS=="pwm-ir-tx", SYMLINK+="lirc-tx"
+
+Change the device and driver /etc/lirc/lirc_options.conf:
+driver          = default
+device          = /dev/lirc-rx
+
+Copy lirc_options.conf to lirc_tx_options.conf and edit these lines:
+
+device          = /dev/lirc-tx
+output          = /var/run/lirc/lircd-tx
+pidfile         = /var/run/lirc/lircd-tx.pid
