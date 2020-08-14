@@ -39,3 +39,18 @@ https://www.waveshare.com/wiki/Raspberry_Pi_Tutorial_Series:_Infrared_Remote_Con
 
 Based on URLs above, early guess that output is NEC encoded.
 Failed to find code to parse NEC data :/
+
+output4 = AUTO + mange 30, en av hver av 29 - 16 og mange 17
+output5 = auto + mange 17 + mange 30
+output6 = auto + av/på 30 grader + av/på 17 grader
+output7 = auto/cool/dry/none/fan @ 17C (mode-knappen) (start på auto + lavere temp, slutter på mode fra fan til auto)
+output8 = auto/cool/dry/none/fan @ 30C (mode-knappen) (start på auto + høyere temp, slutter på mode fra fan til auto)
+output9 = auto: 17->30, 17->30
+output10 = fan = start: none => low, slutt: none => low
+output 11 = auto 17 => led display on/off
+output 12 = auto 30 => led display on/off
+output 13 = auto 30 => swing on/off?
+output 14 = cool 17 => sleep?
+output 15: auto 30 on/off
+output 16: auto 17 timer on fra 0 til 0.5 (sendt) -> 24 -> 0.0 (sendt)
+output 17: auto 17 timer off
