@@ -1,0 +1,125 @@
+#! /usr/bin/python3
+
+import re
+import sys
+from bitstring import BitArray
+from termcolor import colored
+
+SHORT = 560
+LONG = 1690
+
+def parse_seg(seg):
+    assert(len(seg) == 97)
+    #print(len(seg))
+    #print(seg)
+    seg = iter(seg)
+    c = 1
+    n = ""
+    DESC = ["ADDRESS", "!ADDRESS", "COMMAND", "!COMMAND", "UNKNOWN1", "!UNKNOWN2"]
+    data = []
+    d = 0
+    for num in seg:
+        try:
+            first = num
+            second = next(seg)
+            if first == SHORT and second == SHORT:
+                #print("0", end="")
+                n += "0"
+            elif first == SHORT and second == LONG:
+                #print("1", end="")
+                n += "1"
+            else:
+                print(f"what? {n}")
+                sys.exit()
+            if c % 8 == 0:
+                b = BitArray(bin=n)
+                data.append(b)
+                #print(f" - { b.uint } - { DESC[d] }")
+                d += 1
+                n = ""
+            c = c + 1
+        except StopIteration:
+            #print()
+            #print(f"first was: { first }")
+            data[1].invert()
+            assert(data[0] == data[1])
+            ADDR = data[0]
+
+            data[3].invert()
+            assert(data[2] == data[3])
+            CMD = data[2]
+
+            data[5].invert()
+            assert(data[4] == data[5])
+            UNKN = data[4]
+            #print(f"ADR: { ADDR.bin }")
+            #print(f"CMD: { CMD.bin }")
+            #print(f"UNK: { UNKN.bin }")
+            return ADDR, CMD, UNKN 
+
+def parse_numbers(numbers):
+    header = numbers[0:2]
+    footer = numbers[-2:]
+    numbers = [ int(x) for x in numbers[2:-2] ]
+    #print(header)
+    #print(footer)
+    #print(numbers, len(numbers))
+    seg = []
+    parsed_seg = []
+    for num in numbers:
+        if num > (SHORT - 200) and num < (SHORT + 200):
+            num = SHORT
+            seg.append(num)
+        elif num > (LONG - 200) and num < (LONG + 200):
+            num = LONG
+            seg.append(num)
+        else:
+            if len(seg):
+                parsed_seg.append(parse_seg(seg))
+            num = f".{num}."
+            seg = []
+            continue
+        #print(num, end=" ")
+    parsed_seg.append(parse_seg(seg))
+    assert(parsed_seg[0] == parsed_seg[1])
+    #print(parsed_seg[0])
+    for x in parsed_seg[0][1:]:
+        for bit in list(x.bin):
+            if bit == "0":
+                print(colored(bit, "red"), end=" ")
+            else: 
+                print(colored(bit, "green"), end=" ")
+        print("- ", end="")
+
+with open(sys.argv[1]) as fp:
+    lines = fp.read().splitlines()
+    lines = iter([ x.strip() for x in lines ])
+    for line in lines:
+        try:
+        #print("searching for space:", line)
+        m = re.search(r"^(\d*)-space$", line)
+        if m:
+            #print('### START (', m.group(1), ') ###')
+            line = next(lines)
+            assert(line == "")
+            numbers = []
+            while True:
+                try:
+                    line = next(lines)
+                except StopIteration:
+                    line = ""
+                if line == "":
+                    break
+                numbers += line.split()
+            if len(numbers) != 201 and len(numbers) != 200:
+                # We are not really parsing the -pulse and -space correctly,
+                # there is no new press after the last, so is has no -space until
+                # the next, thus 200
+                #print(f"Found only { len(numbers) }, not 200/201, corrupt/invalid list, ignoring")
+                pass
+            else:
+                if len(numbers) == 200:
+                    numbers += ["-"]
+                parse_numbers(numbers)
+            #print('### END ###')
+            print()
