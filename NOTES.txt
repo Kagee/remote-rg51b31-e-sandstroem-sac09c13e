@@ -37,6 +37,9 @@ COOL + 30C
 https://github.com/zeroflow/ESPAircon/wiki/Steps-of-the-reverse-engineering
 https://www.waveshare.com/wiki/Raspberry_Pi_Tutorial_Series:_Infrared_Remote_Control
 
+
+https://github.com/zeroflow/ESPAircon/wiki/Steps-of-the-reverse-engineering
+
 Based on URLs above, early guess that output is NEC encoded.
 Failed to find code to parse NEC data :/
 
